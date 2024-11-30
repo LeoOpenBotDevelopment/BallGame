@@ -35,8 +35,10 @@
             position: fixed;
             bottom: 20px;
             left: 20px;
-            width: 150px;
-            height: 150px;
+            width: 15vw; /* Use viewport width for scaling */
+            height: 15vw; /* Maintain aspect ratio */
+            max-width: 150px; /* Limit size on large screens */
+            max-height: 150px; /* Limit size on large screens */
             border: 1px solid #ccc;
             border-radius: 50%;
             display: flex;
@@ -48,8 +50,8 @@
         }
 
         #joystick {
-            width: 75px;
-            height: 75px;
+            width: 50%; /* Adjust joystick size based on container size */
+            height: 50%;
             background: #ccc;
             border-radius: 50%;
             position: absolute;
@@ -229,14 +231,13 @@
             }
         });
 
+        // Main game loop
         function gameLoop() {
             updatePlayerPosition(playerPosition);
             requestAnimationFrame(gameLoop);
         }
 
-        gameLoop(); // Start game loop
+        gameLoop(); // Start the game loop
     </script>
-    
 </body>
 </html>
-
