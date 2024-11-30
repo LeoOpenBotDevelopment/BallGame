@@ -115,7 +115,7 @@
             const newX = Math.cos(angle) * limitedDistance;
             const newY = Math.sin(angle) * limitedDistance;
 
-            joystick.style.transform = translate(${newX}px, ${newY}px);
+            joystick.style.transform = `translate(${newX}px, ${newY}px)`;
 
             // Update player velocity based on joystick movement
             velocityX = newX / maxDistance * playerSpeed;
@@ -124,17 +124,17 @@
 
         // Reset joystick
         function resetJoystick() {
-            joystick.style.transform = translate(0, 0);
+            joystick.style.transform = `translate(0, 0)`;
             velocityX = 0;
             velocityY = 0;
-            playerElement.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0); // Reset box shadow when not moving
+            playerElement.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`; // Reset box shadow when not moving
         }
 
         // Update player position on screen
         function updatePlayerPosition(position) {
             playerPosition.x += velocityX;
             playerPosition.y += velocityY;
-            playerElement.style.transform = translate(${playerPosition.x}px, ${playerPosition.y}px);
+            playerElement.style.transform = `translate(${playerPosition.x}px, ${playerPosition.y}px)`;
             channel.postMessage({ playerId, position: playerPosition }); // Send updated position to other players
         }
 
@@ -174,12 +174,12 @@
             // Only update if position has changed
             if (position.x !== playerData.lastPosition.x || position.y !== playerData.lastPosition.y) {
                 // Update the player's position
-                playerData.element.style.transform = translate(${position.x}px, ${position.y}px);
-                playerData.element.style.boxShadow = 0 0 10px red; // Set box-shadow for other players when moving
+                playerData.element.style.transform = `translate(${position.x}px, ${position.y}px)`;
+                playerData.element.style.boxShadow = `0 0 10px red`; // Set box-shadow for other players when moving
                 playerData.lastPosition = { x: position.x, y: position.y };
             } else {
                 // Remove box-shadow when player is not moving
-                playerData.element.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0);
+                playerData.element.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`;
             }
         });
 
@@ -201,7 +201,7 @@
         document.addEventListener('mousemove', (event) => {
             if (isDragging) {
                 moveJoystick(event.clientX, event.clientY);
-                playerElement.style.boxShadow = 0 0 10px cyan; // Change box-shadow when the player moves
+                playerElement.style.boxShadow = `0 0 10px cyan`; // Change box-shadow when the player moves
             }
         });
 
@@ -209,7 +209,7 @@
             if (isDragging) {
                 const touch = event.touches[0];
                 moveJoystick(touch.clientX, touch.clientY);
-                playerElement.style.boxShadow = 0 0 10px cyan; // Change box-shadow when the player moves
+                playerElement.style.boxShadow = `0 0 10px cyan`; // Change box-shadow when the player moves
             }
         });
 
@@ -217,7 +217,7 @@
             if (isDragging) {
                 isDragging = false;
                 resetJoystick();
-                playerElement.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0); // Reset box-shadow when released
+                playerElement.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`; // Reset box-shadow when released
             }
         });
 
@@ -225,7 +225,7 @@
             if (isDragging) {
                 isDragging = false;
                 resetJoystick();
-                playerElement.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0); // Reset box-shadow when released
+                playerElement.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`; // Reset box-shadow when released
             }
         });
 
@@ -239,3 +239,4 @@
     
 </body>
 </html>
+
