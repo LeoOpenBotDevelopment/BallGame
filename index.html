@@ -15,41 +15,41 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            touch-action: none; /* Prevent default touch actions */
         }
 
         .player {
             position: absolute;
-            height: 10vw; /* Responsive size */
-            width: 10vw; /* Responsive size */
+            height: 100px;
+            width: 100px;
             border-radius: 50%;
-            background: red;
+            background: red; /* Default color for other players */
             transition: box-shadow 0.5s ease;
         }
 
         .player.self {
-            background: cyan;
-            box-shadow: 0 0 10px cyan;
+            background: cyan; /* Player's own color */
+            box-shadow: 0 0 10px cyan; /* Player's box-shadow when moving */
         }
 
         #joystick-container {
             position: fixed;
-            bottom: 5vh; /* Adjust for better positioning */
-            left: 5vw;
-            width: 20vw; /* Responsive joystick size */
-            height: 20vw; /* Responsive joystick size */
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
             border: 1px solid #ccc;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
+            touch-action: none; /* Disable default touch behaviors */
             background-color: #fff;
             z-index: 100;
         }
 
         #joystick {
-            width: 10vw; /* Responsive joystick knob size */
-            height: 10vw; /* Responsive joystick knob size */
+            width: 75px;
+            height: 75px;
             background: #ccc;
             border-radius: 50%;
             position: absolute;
@@ -62,10 +62,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            background-size: 15px 15px;
+            pointer-events: none; /* Disable interaction */
+            background-size: 15px 15px; /* 2px dot + 13px gap */
             background-image: radial-gradient(#f0f0f0 1px, transparent 1px);
-            z-index: -1;
+            z-index: -1; /* Push behind all other content */
         }
     </style>
 </head>
@@ -77,10 +77,10 @@
 
     <script>
         // Player data
-        let playerId = "player" + Math.random().toString(36).substring(7);
-        const players = {};
+        let playerId = "player" + Math.random().toString(36).substring(7); // Unique player ID
+        const players = {}; // Dictionary to hold players and their positions
         const playerElement = document.createElement('div');
-        playerElement.classList.add('player', 'self');
+        playerElement.classList.add('player', 'self'); // Mark this as the player's own element
         document.body.appendChild(playerElement);
 
         const joystickContainer = document.getElementById('joystick-container');
@@ -93,13 +93,13 @@
         let isDragging = false;
         let velocityX = 0;
         let velocityY = 0;
-        const playerSpeed = 5;
-        let playerPosition = { x: 50, y: 50 };
-        const heartbeatInterval = 5000;
-        const playerTimeout = 10000;
-        const playersTimeout = {};
+        const playerSpeed = 5; // Player speed
+        let playerPosition = { x: 50, y: 50 }; // Initial player position
+        const heartbeatInterval = 5000; // 5 seconds for heartbeat
+        const playerTimeout = 10000; // Timeout after 10 seconds of no heartbeat
+        const playersTimeout = {}; // Track timeout for each player
 
-        const channel = new BroadcastChannel('game_channel');
+        const channel = new BroadcastChannel('game_channel'); // Broadcast channel for communication between tabs
 
         // Function to move joystick
         function moveJoystick(clientX, clientY) {
@@ -111,34 +111,41 @@
             const angle = Math.atan2(deltaY, deltaX);
 
             const limitedDistance = Math.min(distance, maxDistance);
+
             const newX = Math.cos(angle) * limitedDistance;
             const newY = Math.sin(angle) * limitedDistance;
 
-            joystick.style.transform = `translate(${newX}px, ${newY}px)`;
+            joystick.style.transform = translate(${newX}px, ${newY}px);
 
+            // Update player velocity based on joystick movement
             velocityX = newX / maxDistance * playerSpeed;
             velocityY = newY / maxDistance * playerSpeed;
         }
 
+        // Reset joystick
         function resetJoystick() {
-            joystick.style.transform = `translate(0, 0)`;
+            joystick.style.transform = translate(0, 0);
             velocityX = 0;
             velocityY = 0;
-            playerElement.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`;
+            playerElement.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0); // Reset box shadow when not moving
         }
 
+        // Update player position on screen
         function updatePlayerPosition(position) {
             playerPosition.x += velocityX;
             playerPosition.y += velocityY;
-            playerElement.style.transform = `translate(${playerPosition.x}vw, ${playerPosition.y}vh)`;
-            channel.postMessage({ playerId, position: playerPosition });
+            playerElement.style.transform = translate(${playerPosition.x}px, ${playerPosition.y}px);
+            channel.postMessage({ playerId, position: playerPosition }); // Send updated position to other players
         }
 
+        // Function to handle heartbeat message and timeout check
         function handleHeartbeat(playerId) {
+            // Reset timeout for player
             if (playersTimeout[playerId]) {
                 clearTimeout(playersTimeout[playerId]);
             }
 
+            // Reset position for player if they are new
             if (!players[playerId]) {
                 const newPlayerElement = document.createElement('div');
                 newPlayerElement.classList.add('player');
@@ -146,7 +153,9 @@
                 players[playerId] = { element: newPlayerElement, lastPosition: { x: 0, y: 0 } };
             }
 
+            // Set timeout to remove player if no heartbeat
             playersTimeout[playerId] = setTimeout(() => {
+                // Remove player if timeout reaches
                 const playerElement = players[playerId].element;
                 if (playerElement) {
                     playerElement.remove();
@@ -156,27 +165,33 @@
             }, playerTimeout);
         }
 
+        // Listen for incoming position updates from other players
         channel.addEventListener('message', (event) => {
             const { playerId, position } = event.data;
-            handleHeartbeat(playerId);
+            handleHeartbeat(playerId); // Handle heartbeat for this player
             const playerData = players[playerId];
 
+            // Only update if position has changed
             if (position.x !== playerData.lastPosition.x || position.y !== playerData.lastPosition.y) {
-                playerData.element.style.transform = `translate(${position.x}vw, ${position.y}vh)`;
-                playerData.element.style.boxShadow = `0 0 10px red`;
+                // Update the player's position
+                playerData.element.style.transform = translate(${position.x}px, ${position.y}px);
+                playerData.element.style.boxShadow = 0 0 10px red; // Set box-shadow for other players when moving
                 playerData.lastPosition = { x: position.x, y: position.y };
             } else {
-                playerData.element.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`;
+                // Remove box-shadow when player is not moving
+                playerData.element.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0);
             }
         });
 
+        // Send heartbeat message every few seconds
         setInterval(() => {
             channel.postMessage({ playerId, position: playerPosition });
         }, heartbeatInterval);
 
+        // Event listeners for joystick movement
         joystick.addEventListener('mousedown', (event) => {
             isDragging = true;
-            event.preventDefault();
+            event.preventDefault(); // Prevent text selection
         });
 
         joystick.addEventListener('touchstart', (event) => {
@@ -186,7 +201,7 @@
         document.addEventListener('mousemove', (event) => {
             if (isDragging) {
                 moveJoystick(event.clientX, event.clientY);
-                playerElement.style.boxShadow = `0 0 10px cyan`;
+                playerElement.style.boxShadow = 0 0 10px cyan; // Change box-shadow when the player moves
             }
         });
 
@@ -194,7 +209,7 @@
             if (isDragging) {
                 const touch = event.touches[0];
                 moveJoystick(touch.clientX, touch.clientY);
-                playerElement.style.boxShadow = `0 0 10px cyan`;
+                playerElement.style.boxShadow = 0 0 10px cyan; // Change box-shadow when the player moves
             }
         });
 
@@ -202,7 +217,7 @@
             if (isDragging) {
                 isDragging = false;
                 resetJoystick();
-                playerElement.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`;
+                playerElement.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0); // Reset box-shadow when released
             }
         });
 
@@ -210,7 +225,7 @@
             if (isDragging) {
                 isDragging = false;
                 resetJoystick();
-                playerElement.style.boxShadow = `0 0 10px rgba(0, 0, 0, 0)`;
+                playerElement.style.boxShadow = 0 0 10px rgba(0, 0, 0, 0); // Reset box-shadow when released
             }
         });
 
@@ -221,5 +236,6 @@
 
         gameLoop(); // Start game loop
     </script>
+    
 </body>
 </html>
