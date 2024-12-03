@@ -311,7 +311,11 @@ transform: scale(1.05);
         }
         .wall{
             background: #0c0c0c;
-border: 1px solid #000;
+        }
+        
+        .door{
+            background: #583300;
+            border: 1px solid #000;
         }
 
         
@@ -319,30 +323,75 @@ border: 1px solid #000;
             background: #4E7A27;
         }
         .worldmap.Field .wall{
-            background: #6A3A18;
+            background: #6A30A18;
             border: 1px solid #000;
         }
+        .worldmap.Field .door {
+    background: #6A30A18;
+}
         .worldmap.Desert {
             background: #C78F1C;
         }
         .worldmap.Desert .wall {
             background: #6A3A18;
-            border: 1px solid #000;
         }
         .worldmap.Maze {
             background: #705D4D;
         }
         .worldmap.Maze .wall {
             background: #5C5C5C;
-            border: 1px solid #000;
         }
+        .worldmap.Maze .door {
+    background: #5C5C5C;
+    border: 1px solid #000;
+}
+.worldmap .door.openeddoor {
+    display: none;
+}
+
+.worldmap .door.locked:after {
+    content: "";
+    height: 100%;
+    width: 100%;
+    background: rgba(50, 50, 50, 0.3);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.worldmap .chest.locked:after {
+    content: "";
+    height: 20px;
+    width: 20px;
+    background: #0f0f0f;
+    position: absolute;
+    border-radius: 50%;
+}
+.worldmap .chest-top.locked:after {
+    bottom: 0;
+    left: calc(50% - 10px);
+}
+.worldmap .chest-bottom.locked:after {
+    top: 0;
+    left: calc(50% - 10px);
+}
+.worldmap .chest-left.locked:after {
+    right: 0;
+    top: calc(50% - 10px);
+}
+.worldmap .chest-right.locked:after {
+    left: 0;
+    top: calc(50% - 10px);
+}
         .worldmap.Mountains {
             background: #D6D6D6;
         }
         .worldmap.Mountains .wall {
             background: #C2C2C2;
-            border: 1px solid #000;
         }
+        .worldmap.Mountains .door {
+    background: #C2C2C2;
+    border: 1px solid #000;
+}
         .worldmap.Swomp {
             background: #4E7A27;
         }
@@ -351,40 +400,90 @@ border: 1px solid #000;
         }
         .worldmap.Swomp .wall {
             background: #592500;
-            border: 1px solid #000;
         }
+        .worldmap.Swomp .door {
+    background: #6A30A18;
+    border: 1px solid #000;
+}
         .worldmap.City {
-            background: #C2C2C2;
+            background: #d6d6d6;
         }
-        .worldmap.city .wall {
+        .worldmap.City .wall {
             background: #008CB4;
-            border: 1px solid #000;
         }
+        .worldmap.City .door {
+    background: #6A30A18;
+    border: 1px solid #000;
+}
         .worldmap.Ice {
             background: #CBF0FF;
         }
         .worldmap.Ice .wall {
-            background: #93E3FD;
-            border: 1px solid #000;
+            background: rgba(0, 97, 254, 0.5);
+        }
+        .worldmap.Ice .door {
+    background: #785800;
+    border: 1px solid #000;
+}
+        .road{
+            background: #474747;
+        }
+        .worldmap.City #gridpart.floor {
+    background: #C5C6D6;
+}
+.worldmap.Swomp #gridpart.floor {
+    background: #583300;
+}
+        .door-right {
+            height: 150px;
+            width: 10px;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        .door-top {
+            height: 10px;
+            width: 150px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .door-bottom {
+            height: 10px;
+            width: 150px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        .door-left {
+            height: 150px;
+            width: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
 <body>
     <div class="dot-grid"></div>
     <div class="worldmapcontainer">
-        <div class="worldmap Field">
-            <span id="gridpart">
-                <span class="Element toopen chest chest-top"></span>
+        <div class="worldmap Swomp">
+            <span id="gridpart" class="floor">
+                <span class="Element locked toopen chest chest-top"></span>
+                <span class="Element door locked door-bottom"></span>
                 <span class="Element wall wall-left"></span>
                 <span class="Element wall wall-top"></span>
-                
             </span>
-            <span id="gridpart">
+            <span id="gridpart" class="floor">
     <span class="Element toopen chest chest-top"></span>
     <span class="Element wall wall-right"></span>
     <span class="Element wall wall-top"></span>
 
 </span>
+<span id="gridpart" class="floor"></span>
         </div>
     </div>
     <div id="joystick-container">
@@ -449,12 +548,13 @@ let previousScrollLeft = 0;
             playerElement.style.transform = `translate(${playerPosition.x}px, ${playerPosition.y}px)`;
             const targets = document.querySelectorAll('.toopen');
             const targets2 = document.querySelectorAll('.Element');
-            function checkCollisionontoopen(ballRect) {
+            const doortargets = document.querySelectorAll('.door');
+            function checkCollisionontoopen(ballRect, gtargets) {
     const ballCenterX = ballRect.left + ballRect.width / 2;
     const ballCenterY = ballRect.top + ballRect.height / 2;
     const ballRadius = ballRect.width / 2;
 
-    for (const target of targets) {
+    for (const target of gtargets) {
         const targetRect = target.getBoundingClientRect();
 
         // Berechne den Abstand zwischen dem Mittelpunkt des Balls und dem Ziel
@@ -502,12 +602,14 @@ function checkCollision(ballRect) {
 }
 
 
-let targethit = checkCollisionontoopen(playerElement.getBoundingClientRect());
+let targethit = checkCollisionontoopen(playerElement.getBoundingClientRect(), targets);
 document.querySelectorAll('.opened').forEach(openedelememt => {
     openedelememt.classList.remove("opened");
 });
 if (targethit){
-    targethit.classList.add("opened");
+    if (!targethit.classList.contains('locked')){
+        targethit.classList.add("opened");
+    }
 }
 
 let targethit2 = checkCollision(playerElement.getBoundingClientRect());
@@ -515,6 +617,12 @@ if (targethit2) {
     playerPosition.x -= velocityX;
 playerPosition.y -= velocityY;
 playerElement.style.transform = `translate(${playerPosition.x}px, ${playerPosition.y}px)`;
+}
+let targethit4 = checkCollisionontoopen(playerElement.getBoundingClientRect(), doortargets);
+if (targethit4) {
+    if (!targethit4.classList.contains('locked')) {
+        targethit4.classList.add("openeddoor");
+    }
 }
 function checkAndScrollToElement(element, worldElement) {
     // Berechne die Position des Elements und des Viewports
